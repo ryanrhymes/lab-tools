@@ -87,9 +87,10 @@ let get_talk_details s =
   let abstract = Array.get (Array.get x 0) 1 |> (Pcre.extract_all ~rex:re06) |> (Array.map (fun x ->
     Array.get x 1 |> (Pcre.replace ~rex:re07) |> (Pcre.replace ~rex:re08) |> (Pcre.replace ~rex:re09) |> (Pcre.replace ~rex:re10)
   )) |> Array.to_list |> (String.concat "\n\n") in
-  let r = "Date: " ^ datetime ^ "\n"
+  let r = "Date: " ^ datetime ^ "\n" ^
     "Location: " ^ location ^ "\n" ^
     "Speaker: " ^ speaker ^ "\n" ^
+    "" in 
   r
 
 let _ = 
