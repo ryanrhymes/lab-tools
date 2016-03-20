@@ -44,7 +44,6 @@ let get_all_tkuri s =
 
 
 let get_talk_page talk_uri = 
-  (**let talk_uri = "http://talks.cam.ac.uk/talk/index/63075" in*)
   Client.get (Uri.of_string talk_uri) >>= fun (resp, body) ->
   Cohttp_lwt_body.to_string body
 
