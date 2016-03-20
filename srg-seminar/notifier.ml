@@ -69,6 +69,7 @@ let re02 = Pcre.regexp ~flags:[`UNGREEDY; `MULTILINE] ("<li><img alt=\"Clock\".*
 let re03 = Pcre.regexp ~flags:[`UNGREEDY; `MULTILINE] "<.*abbr.*>"
 let re04 = Pcre.regexp ~flags:[`UNGREEDY; `MULTILINE] ("<li><img alt=\"House\".*><a.*>([\s\S]*)</a>.*</li>")
 let re05 = Pcre.regexp ~flags:[`UNGREEDY; `MULTILINE] ("<p class='urgent'></p>([\s\S]*)<p>This talk is part of.*")
+let re06 = Pcre.regexp ~flags:[`UNGREEDY; `MULTILINE] ("<p>([\s\S]*)</p>")
 
 let get_talk_details s = 
   let x = Pcre.extract_all ~rex:re01 s in
@@ -78,11 +79,11 @@ let get_talk_details s =
   let x = Pcre.extract_all ~rex:re04 s in
   let location = Array.get (Array.get x 0) 1 in
   let x = Pcre.extract_all ~rex:re05 s in
-  let abstract = Array.get (Array.get x 0) 1 in
+  let abstract = Array.get (Array.get x 0) 1 |> (Pcre.extract_all ~rex:re06) in
   print_endline speaker;
   print_endline datetime;
   print_endline location;
-  print_endline abstract;
+  print_endline "abc";
   s
 
 let _ = 
