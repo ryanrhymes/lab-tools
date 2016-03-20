@@ -13,9 +13,9 @@ type datetime = string;;
 
 (** retrieve the html page*)
 let seminar_uri = "http://talks.cam.ac.uk/show/index/8316"
-
-let body = Client.get (Uri.of_string seminar_uri) >>= fun (resp, body) ->
+let seminar_page = Client.get (Uri.of_string seminar_uri) >>= fun (resp, body) ->
   Cohttp_lwt_body.to_string body
+
 
 let rex0 = Pcre.regexp ~flags:[`UNGREEDY; `MULTILINE] ("<div class='vevent simpletalk click'>([\s\S]*)</div")
 let rex1 = Pcre.regexp ~flags:[`UNGREEDY; `MULTILINE] ("<h2.*><a.*href=\"(.+)\".*>([\s\S]*)</a></h2>")
@@ -33,6 +33,7 @@ let re10 = Pcre.regexp ~flags:[`UNGREEDY; `MULTILINE] "\s+$"
 let re11 = Pcre.regexp ~flags:[`MULTILINE] "\s+"
 let re12 = Pcre.regexp ~flags:[`UNGREEDY; `MULTILINE] "&#8217;"
 
+
 let get_all_tkuri s = 
   let ar0 = Pcre.extract_all ~rex:rex0 s in
   Array.map (fun x -> 
@@ -41,10 +42,12 @@ let get_all_tkuri s =
     Array.get (Array.get y 0) 1
   ) ar0
 
+
 let get_talk_page talk_uri = 
   (**let talk_uri = "http://talks.cam.ac.uk/talk/index/63075" in*)
   Client.get (Uri.of_string talk_uri) >>= fun (resp, body) ->
   Cohttp_lwt_body.to_string body
+
 
 let get_talk_details s = 
   let x = Pcre.extract_all ~rex:re00 s in
@@ -68,8 +71,20 @@ let get_talk_details s =
     "SRG Seminar: http://talks.cam.ac.uk/show/index/8316" in
   r
 
-let _ = 
-  let s = Lwt_main.run body in 
-  let s = Array.get (get_all_tkuri s) 0 in
-  let s = Lwt_main.run (get_talk_page s) in
-  get_talk_details s |> print_endline
+
+let get_comming_talk () = 
+  let s = Lwt_main.run seminar_page in 
+  Array.get (get_all_tkuri s) 0 |>
+  get_talk_page |> Lwt_main.run |>
+  get_talk_details |> print_endline
+
+
+let get_talk_by_uri uri = 
+  Lwt_main.run (get_talk_page uri) |>
+  get_talk_details |> print_endline
+
+
+let _ = match Array.length Sys.argv with
+  | 1 -> get_comming_talk ()
+  | 2 -> get_talk_by_uri (Array.get Sys.argv 1)
+  | _ -> print_endline "Too many arguments!"
