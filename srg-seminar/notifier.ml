@@ -87,14 +87,13 @@ let get_talk_details s =
   let abstract = Array.get (Array.get x 0) 1 |> (Pcre.extract_all ~rex:re06) |> (Array.map (fun x ->
     Array.get x 1 |> (Pcre.replace ~rex:re07) |> (Pcre.replace ~rex:re08) |> (Pcre.replace ~rex:re09) |> (Pcre.replace ~rex:re10)
   )) |> Array.to_list |> (String.concat "\n\n") in
-  print_endline speaker;
-  print_endline datetime;
-  print_endline location;
-  print_endline abstract;
-  s
+  let r = "Date: " ^ datetime ^ "\n"
+    "Location: " ^ location ^ "\n" ^
+    "Speaker: " ^ speaker ^ "\n" ^
+  r
 
 let _ = 
   let s = Lwt_main.run body in 
   let s = Array.get (get_all_tkuri s) 0 in
   let s = Lwt_main.run (get_talk_page s) in
-  get_talk_details s
+  get_talk_details s |> print_endline
