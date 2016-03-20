@@ -61,6 +61,7 @@ let get_all_tkuri s =
   ) ar0
 
 let get_talk_page talk_uri = 
+  let talk_uri = "http://talks.cam.ac.uk/talk/index/63075" in
   Client.get (Uri.of_string talk_uri) >>= fun (resp, body) ->
   Cohttp_lwt_body.to_string body
 
@@ -70,20 +71,26 @@ let re03 = Pcre.regexp ~flags:[`UNGREEDY; `MULTILINE] "<.*abbr.*>"
 let re04 = Pcre.regexp ~flags:[`UNGREEDY; `MULTILINE] ("<li><img alt=\"House\".*><a.*>([\s\S]*)</a>.*</li>")
 let re05 = Pcre.regexp ~flags:[`UNGREEDY; `MULTILINE] ("<p class='urgent'></p>([\s\S]*)<p>This talk is part of.*")
 let re06 = Pcre.regexp ~flags:[`UNGREEDY; `MULTILINE] ("<p>([\s\S]*)</p>")
+let re07 = Pcre.regexp ~flags:[`UNGREEDY; `MULTILINE] "[\r\n]"
+let re08 = Pcre.regexp ~flags:[`UNGREEDY; `MULTILINE] "<.*>"
+let re09 = Pcre.regexp ~flags:[`UNGREEDY; `MULTILINE] "^\s+"
+let re10 = Pcre.regexp ~flags:[`UNGREEDY; `MULTILINE] "\s+$"
 
 let get_talk_details s = 
   let x = Pcre.extract_all ~rex:re01 s in
-  let speaker = Array.get (Array.get x 0) 1 in
+  let speaker = Array.get (Array.get x 0) 1 |> (Pcre.replace ~rex:re07) |> (Pcre.replace ~rex:re08) in
   let x = Pcre.extract_all ~rex:re02 s in
   let datetime = Array.get (Array.get x 0) 1 |> Pcre.replace ~rex:re03 in
   let x = Pcre.extract_all ~rex:re04 s in
   let location = Array.get (Array.get x 0) 1 in
   let x = Pcre.extract_all ~rex:re05 s in
-  let abstract = Array.get (Array.get x 0) 1 |> (Pcre.extract_all ~rex:re06) in
+  let abstract = Array.get (Array.get x 0) 1 |> (Pcre.extract_all ~rex:re06) |> (Array.map (fun x ->
+    Array.get x 1 |> (Pcre.replace ~rex:re07) |> (Pcre.replace ~rex:re08) |> (Pcre.replace ~rex:re09) |> (Pcre.replace ~rex:re10)
+  )) |> Array.to_list |> (String.concat "\n\n") in
   print_endline speaker;
   print_endline datetime;
   print_endline location;
-  print_endline "abc";
+  print_endline abstract;
   s
 
 let _ = 
