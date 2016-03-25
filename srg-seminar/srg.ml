@@ -36,11 +36,12 @@ let re12 = Pcre.regexp ~flags:[`UNGREEDY; `MULTILINE] "&#8217;"
 
 let get_all_tkuri s = 
   let ar0 = Pcre.extract_all ~rex:rex0 s in
-  Array.map (fun x -> 
+  let ar1 = Array.map (fun x -> 
     let s = Array.get x 1 in 
     let y = Pcre.extract_all ~rex:rex1 s in
     Array.get (Array.get y 0) 1
-  ) ar0
+  ) ar0 in
+  return ar1
 
 
 let get_talk_page talk_uri = 
@@ -68,19 +69,19 @@ let get_talk_details s =
     "Title: " ^ title ^ "\n\n" ^
     "Abstact: " ^ abstract ^ "\n\n" ^
     "SRG Seminar: http://talks.cam.ac.uk/show/index/8316" in
-  r
+  return r
 
 
+let first_element x = return (Array.get x 0)
 let get_comming_talk () = 
-  let s = Lwt_main.run seminar_page in 
-  Array.get (get_all_tkuri s) 0 |>
-  get_talk_page |> Lwt_main.run |>
-  get_talk_details |> print_endline
+  seminar_page >>= get_all_tkuri >>= first_element >>=
+  get_talk_page >>= get_talk_details |> Lwt_main.run |>
+  print_endline
 
 
 let get_talk_by_uri uri = 
-  Lwt_main.run (get_talk_page uri) |>
-  get_talk_details |> print_endline
+  get_talk_page uri >>= get_talk_details |> Lwt_main.run |>
+  print_endline
 
 
 let _ = match Array.length Sys.argv with
