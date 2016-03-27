@@ -17,6 +17,12 @@ let seminar_page = Client.get (Uri.of_string seminar_uri) >>= fun (resp, body) -
   Cohttp_lwt_body.to_string body
 
 
+let first_element x = return (Array.get x 0)
+let shorter_date x =
+  let y = Pcre.split x in
+  (List.nth y 1) ^ " " ^ (List.nth y 2)
+
+
 let rex0 = Pcre.regexp ~flags:[`UNGREEDY; `MULTILINE] ("<div class='vevent simpletalk click'>([\s\S]*)</div")
 let rex1 = Pcre.regexp ~flags:[`UNGREEDY; `MULTILINE] ("<h2.*><a.*href=\"(.+)\".*>([\s\S]*)</a></h2>")
 let re00 = Pcre.regexp ~flags:[`UNGREEDY; `MULTILINE] ("<h1 class='summary'.*>([\s\S]*)</h1>")
@@ -63,7 +69,9 @@ let get_talk_details s =
     Array.get x 1 |> (Pcre.replace ~rex:re07) |> (Pcre.replace ~rex:re08) |> (Pcre.replace ~rex:re09) |> 
 	(Pcre.replace ~rex:re10) |> (Pcre.replace ~rex:re11 ~templ:" ") |> (Pcre.replace ~rex:re12 ~templ:"\'")
   )) |> Array.to_list |> (String.concat "\n\n") in
-  let r = "Date: " ^ datetime ^ "\n" ^
+  let r = 
+    "[SRG-SEMINAR] " ^ (shorter_date datetime) ^ " - " ^ speaker ^ " - " ^ title ^ "\n\n" ^
+    "Date: " ^ datetime ^ "\n" ^
     "Location: " ^ location ^ "\n" ^
     "Speaker: " ^ speaker ^ "\n\n" ^
     "Title: " ^ title ^ "\n\n" ^
@@ -72,7 +80,6 @@ let get_talk_details s =
   return r
 
 
-let first_element x = return (Array.get x 0)
 let get_comming_talk () = 
   seminar_page >>= get_all_tkuri >>= first_element >>=
   get_talk_page >>= get_talk_details |> Lwt_main.run |>
