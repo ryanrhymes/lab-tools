@@ -75,7 +75,7 @@ let get_talk_details s =
     "Location: " ^ location ^ "\n" ^
     "Speaker: " ^ speaker ^ "\n\n" ^
     "Title: " ^ title ^ "\n\n" ^
-    "Abstact: " ^ abstract ^ "\n\n" ^
+    "Abstract: " ^ abstract ^ "\n\n" ^
     "SRG Seminar: http://talks.cam.ac.uk/show/index/8316" in
   return r
 
